@@ -25,17 +25,17 @@ fn main() {
     let lim = items.len();
     let mut best = 0;
     let start_time = Instant::now();
-    for a in 0..lim {
-        for b in 0..lim {
-            for c in 0..lim {
-                for d in 0..lim {
-                    for e in 0..lim {
-                        for f in 0..lim {
-                            let (durability, id) = evaluateItem(&[&items[a], &items[b], &items[c], &items[d], &items[e], &items[f]], 
+    let desired = "poison";
+    for a in &items {
+        for b in &items {
+            for c in &items {
+                for d in &items {
+                    for e in &items {
+                        for f in &items {
+                            let (durability, id) = evaluateItem(&[a, b, c, d, e, f], 
                                 &"poison".to_string());
                             if id > best {
                                 println!("new best {id}");
-                                println!("{a} {b} {c} \n");
                                 best = id;
                             }
                         }
@@ -112,7 +112,6 @@ fn evaluateItem(ingredients: &[&Item; 6], desired_ID: &String) -> (i32, i32) {
             }
         }
     }
-
     let mut totalID = 0;
     for (n, item) in ingredients.iter().enumerate() {
         let (y, x) = (n / 2, n % 2);
@@ -122,16 +121,10 @@ fn evaluateItem(ingredients: &[&Item; 6], desired_ID: &String) -> (i32, i32) {
                 (val.as_f64().unwrap() * (eff[y][x] as f64) * 0.01) as i32
             },
             _ => {
-                // println!("no '{}' for {:?}", desired_ID, item.displayName);
                 0
             }
         }
     }
 
     (totalMinDurability, totalID)
-    /* return {
-        "minDurability": totalMinDurability,
-        "ID": totalID
-    }
-    */
 }
