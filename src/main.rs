@@ -26,14 +26,18 @@ fn main() {
     let mut best = 0;
     let start_time = Instant::now();
     let desired = "poison";
-    for a in &items {
-        for b in &items {
-            for c in &items {
-                for d in &items {
-                    for e in &items {
-                        for f in &items {
-                            let (durability, id) = evaluateItem(&[a, b, c, d, e, f], 
-                                &"poison".to_string());
+    let desireds = items.iter().map(|i| get_desired(&i, desired)).collect::<Vec<f32>>();
+
+    for (a, da) in items.iter().zip(&desireds) {
+        for (b, db) in items.iter().zip(&desireds) {
+            for (c, dc) in items.iter().zip(&desireds) {
+                for (d, dd) in items.iter().zip(&desireds) {
+                    for (e, de) in items.iter().zip(&desireds) {
+                        for (f, df) in items.iter().zip(&desireds) {
+                            let (durability, id) = evaluateItem(
+                                &[a, b, c, d, e, f], 
+                                &[*da, *db, *dc, *dd, *de, *df]
+                            );
                             if id > best {
                                 println!("new best {id}");
                                 best = id;
@@ -49,7 +53,16 @@ fn main() {
     println!("{} s", start_time.elapsed().as_millis() as f32 * 0.001);
 }
 
-fn evaluateItem(ingredients: &[&Item; 6], desired_ID: &String) -> (i32, i32) {
+fn get_desired(item: &Item, desired: &str) -> f32 {
+    match &item.ids[desired]["maximum"] {
+        Value::Number(n) => {
+            n.as_f64().unwrap() as f32
+        }
+        _ => {0.0}
+    }
+}
+
+fn evaluateItem(ingredients: &[&Item; 6], desired_vals: &[f32; 6]) -> (i32, i32) {
 
     let mut totalMinDurability = 0;
 
@@ -113,17 +126,9 @@ fn evaluateItem(ingredients: &[&Item; 6], desired_ID: &String) -> (i32, i32) {
         }
     }
     let mut totalID = 0;
-    for (n, item) in ingredients.iter().enumerate() {
+    for n in 0..6 {
         let (y, x) = (n / 2, n % 2);
-
-        totalID += match &item.ids[desired_ID]["maximum"] {
-            Value::Number(val) => {
-                (val.as_f64().unwrap() * (eff[y][x] as f64) * 0.01) as i32
-            },
-            _ => {
-                0
-            }
-        }
+        totalID += (desired_vals[n] * (eff[y][x] as f32) * 0.01) as i32;
     }
 
     (totalMinDurability, totalID)
