@@ -197,7 +197,7 @@ fn get_eff(y: usize, x: usize, item: &Item) -> [[i32; 2]; 3] {
         }
     }
     // right
-    if item.posMods.left != 0 {
+    if item.posMods.right != 0 {
         for k in (x+1)..2 {
             eff[y][k] += item.posMods.right;
         }
