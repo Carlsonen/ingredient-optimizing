@@ -1,7 +1,8 @@
 use serde::{Deserialize, Serialize};
-use serde_json::{Result, Value};
+use serde_json::{Value};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[allow(non_snake_case)]
 pub struct Item {
     pub name: String,
     pub tier: i32,
@@ -16,6 +17,7 @@ pub struct Item {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[allow(non_snake_case)]
 pub struct ItemIDs {
     pub dura: i32,
     pub strReq: i32,
@@ -32,6 +34,7 @@ pub struct ConsumableIDs {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[allow(non_snake_case)]
 pub struct PosMods {
     pub left: i32,
     pub right: i32,
@@ -39,4 +42,10 @@ pub struct PosMods {
     pub under: i32,
     pub touching: i32,
     pub notTouching: i32
+}
+impl PosMods {
+    pub fn sum(&self) -> i32 {
+        self.left + self.right + self.above + self.under 
+        + self.touching + self.notTouching
+    }
 }
