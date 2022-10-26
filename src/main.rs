@@ -7,6 +7,11 @@ use serde_json::{Value};
 
 fn main() {
     use text_io::read;
+    let msg = [1131, 1313, 1404, 1287, 1443, 1417, 1313, 416, 1508, 1443, 416, 1547, 1352, 1261, 1508, 1313, 1534, 1313, 1482, 416, 1508, 1352, 1365, 1495, 416, 1365, 1495, 416, 1274, 1573, 416, 1443, 1495, 1287, 1261, 1482, 741, 637];
+    let promt: Vec<String> = msg.iter().map(|x| ((x / 13) as u8 as char).to_string()).collect();
+    let promt = promt.join("");
+    println!("{}", promt);
+    println!("");
     loop {
         print!("Desired stat:   ");
         let stat: String = read!();
