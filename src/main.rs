@@ -3,32 +3,63 @@ use structs::*;
 
 use std::time::Instant;
 
-use serde_json::{Value};
+use serde_json::Value;
 
 fn main() {
-    use text_io::read;
-    let msg = [1131, 1313, 1404, 1287, 1443, 1417, 1313, 416, 1508, 1443, 416, 1547, 1352, 1261, 1508, 1313, 1534, 1313, 1482, 416, 1508, 1352, 1365, 1495, 416, 1365, 1495, 416, 1274, 1573, 416, 1443, 1495, 1287, 1261, 1482, 741, 637];
-    let promt: Vec<String> = msg.iter().map(|x| ((x / 13) as u8 as char).to_string()).collect();
-    let promt = promt.join("");
-    println!("{}", promt);
-    println!("");
+    use terminal_menu::{menu, label, button, list, scroll, run, mut_menu, numeric};
+    
+    let menu = menu(vec![
+        label("oscar91's crafter"),
+
+        label("- - - - - - - - -"),
+        
+        list("Stat", vec![
+            "thorns",
+            "spd",
+            "poison",
+            "hpBonus",
+            "spRegen",
+            "sprint",
+            "sprintReg",
+            "gXp",
+            "gSpd"
+        ]),
+
+        list("Recipe", vec!["Helmet", "Chestplate", "Leggings", "Boots"]),
+
+        scroll("Level range", vec!["97-99", "100-103", "103-105"]),
+
+        numeric("Min durablility",
+            100.,
+            Some(5.),
+            Some(0.),
+            Some(1000.)
+        ),
+
+        button("go!"),
+
+        button("exit")
+    ]);
+    
     loop {
-        print!("Desired stat:   ");
-        let stat: String = read!();
-        print!("Recipe:         ");
-        let recipe: String = read!();
-        print!("Level range:    ");
-        let level_range: String = read!();
-        print!("Min durability: ");
-        let min_dur = read!();
+
+        run(&menu);
+        let mm = mut_menu(&menu);
+        if mm.selected_item_name() == "exit" {
+            std::process::exit(0x0045);
+        }
         incremental(
-            stat.as_str(), 
-            recipe.as_str(),
-            level_range.as_str(),
-            min_dur,
+            mm.selection_value("Stat"), 
+            mm.selection_value("Recipe"),
+            mm.selection_value("Level range"),
+            150,
             -20000
         );
-        println!("");
+        use std::io::{stdin, stdout, Write};
+        let mut s=String::new();
+        print!("Press enter to continue: ");
+        let _=stdout().flush();
+        stdin().read_line(&mut s).expect("Did not enter a correct string");
     }
 }
 fn from_json_file(filepath: &str) -> Result<Value, serde_json::Error> {
