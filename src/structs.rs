@@ -45,7 +45,19 @@ pub struct PosMods {
 }
 impl PosMods {
     pub fn sum(&self) -> i32 {
-        self.left + self.right + self.above + self.under 
-        + self.touching + self.notTouching
+        self.left + 
+        self.right + 
+        self.above + 
+        self.under + 
+        self.touching + 
+        self.notTouching
+    }
+    pub fn has_some(&self) -> bool {
+        self.left != 0 ||
+        self.right != 0 ||
+        self.above != 0 ||
+        self.under != 0 ||
+        self.touching != 0 ||
+        self.notTouching != 0
     }
 }

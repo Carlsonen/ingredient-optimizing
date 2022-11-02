@@ -2,34 +2,58 @@ mod structs;
 use structs::*;
 
 use std::time::Instant;
-
 use serde_json::Value;
+use terminal_menu::{menu, label, button, list, scroll, run, mut_menu, numeric, string};
 
 fn main() {
-    use terminal_menu::{menu, label, button, list, scroll, run, mut_menu, numeric};
+    let all_stats = [
+        "hprPct",
+        "mr",
+        "sdPct",
+        "mdPct",
+        "ls",
+        "ms",
+        "xpb",
+        "lb",
+        "ref",
+        "thorns",
+        "expd",
+        "spd",
+        "atkTier",
+        "poison",
+        "hpBonus",
+        "spRegen",
+        "eSteal",
+        "hprRaw",
+        "sdRaw",
+        "mdRaw",
+        "fDamPct", "wDamPct", "aDamPct", "tDamPct", "eDamPct",
+        "fDefPct", "wDefPct", "aDefPct", "tDefPct", "eDefPct",
+        "spPct1", "spRaw1",
+        "spPct2", "spRaw2",
+        "spPct3", "spRaw3",
+        "spPct4", "spRaw4",
+        "rSdRaw",
+        "sprint",
+        "sprintReg",
+        "jh",
+        "lq",
+        "gXp",
+        "gSpd"
+    ];
     
     let menu = menu(vec![
         label("oscar91's crafter"),
 
         label("- - - - - - - - -"),
-        
-        list("Stat", vec![
-            "thorns",
-            "spd",
-            "poison",
-            "hpBonus",
-            "spRegen",
-            "sprint",
-            "sprintReg",
-            "gXp",
-            "gSpd"
-        ]),
 
-        list("Recipe", vec!["Helmet", "Chestplate", "Leggings", "Boots"]),
+        string("Stat", "", false),
 
-        scroll("Level range", vec!["97-99", "100-103", "103-105"]),
+        list("Recipe", vec!["Helmet", "Chestplate", "Leggings", "Boots", "Ring", "Bracelet", "Necklace"]),
 
-        numeric("Min durablility",
+        scroll("Level range", vec!["3-5", "5-7", "1-3", "10-13", "13-15", "15-17", "17-19", "20-23", "23-25", "7-9", "25-27", "27-29", "30-33", "33-35", "35-37", "37-39", "40-43", "45-47", "47-49", "43-45", "50-53", "53-55", "55-57", "57-59", "60-63", "65-67", "63-65", "67-69", "70-73", "73-75", "77-79", "75-77", "80-83", "83-85", "85-87", "87-89", "93-95", "95-97", "90-93", "97-99", "100-103", "103-105"]),
+
+        numeric("Min durability",
             100.,
             Some(5.),
             Some(0.),
@@ -42,19 +66,27 @@ fn main() {
     ]);
     
     loop {
-
         run(&menu);
         let mm = mut_menu(&menu);
         if mm.selected_item_name() == "exit" {
             std::process::exit(0x0045);
         }
-        incremental(
-            mm.selection_value("Stat"), 
-            mm.selection_value("Recipe"),
-            mm.selection_value("Level range"),
-            150,
-            -20000
-        );
+        let stat = mm.selection_value("Stat"); 
+        let recipe = mm.selection_value("Recipe");
+        let lvl_range = mm.selection_value("Level range");
+        let min_dur = mm.numeric_value("Min durability") as i32;
+        if all_stats.contains(&stat) {
+            incremental(
+                stat, 
+                recipe,
+                lvl_range,
+                min_dur,
+                -20000
+            );
+        }
+        else {
+            println!("Stat not available");
+        }
         use std::io::{stdin, stdout, Write};
         let mut s=String::new();
         print!("Press enter to continue: ");
@@ -94,15 +126,8 @@ fn incremental(desired: &str, recipe_type: &str, recipe_level: &str, min_dur: i3
     let items: Vec<Item> = all_items.into_iter()
         .filter(
             |item|
-            item.skills.contains(&required_skill.to_string())
-        )
-        .filter(
-            |item|
-            item.lvl <= item_max_lvl
-        )
-        .filter(
-            |item|
-            item.itemIDs.dura >= min_item_dur
+            item.skills.contains(&required_skill.to_string())   // required filters
+            && item.lvl <= item_max_lvl                         // ----------------
         )
         .filter(
             |item| 
@@ -111,12 +136,13 @@ fn incremental(desired: &str, recipe_type: &str, recipe_level: &str, min_dur: i3
                 _ => false
             } 
             ||
-            item.posMods.sum() > 0
+            item.posMods.has_some()
             ||
-            item.itemIDs.dura > 0
+            item.itemIDs.dura > 0                               // only useful if positive
         )
         .collect::<Vec<Item>>();
     
+    let mut found_one = false;
     let mut best = 0;
     let mut best_ids = [0; 6];
     let start_time = Instant::now();
@@ -152,6 +178,7 @@ fn incremental(desired: &str, recipe_type: &str, recipe_level: &str, min_dur: i3
                             if score > best && durability > min_dur {
                                 best = score;
                                 best_ids = [a.id, b.id, c.id, d.id, e.id, f.id];
+                                found_one = true;
                             }
                             durability -= f.itemIDs.dura;
                             sub_eff(&mut eff, &f_eff);
@@ -172,9 +199,13 @@ fn incremental(desired: &str, recipe_type: &str, recipe_level: &str, min_dur: i3
         sub_eff(&mut eff, &a_eff);
         println!("{}/{}", n + 1, items.len());
     }
-    
-    let link = get_link(best_ids, recipe["id"].as_i64().unwrap() as i32);
-    println!("{}", link);
+    if found_one {
+        let link = get_link(best_ids, recipe["id"].as_i64().unwrap() as i32);
+        println!("{}", link);
+    }
+    else {
+        println!("Could not find a valid combination of items");
+    }
     println!("{} s", start_time.elapsed().as_millis() as f32 * 0.001);
 }
 
